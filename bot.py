@@ -89,7 +89,7 @@ class laundry:
 
     def machineexists(self, name):
         if len(self.availablemachines) == 0:
-            fixlocalcache()
+            self.fixlocalcache()
 
         for machine in self.availablemachines:
             if machine.name.lower() == name:
