@@ -174,10 +174,8 @@ async def on_socket_raw_receive(msg):
                 machines = l.getmachines()
                 donejobs = []
                 for job in myjobs:
-                    print(job)
                     if job.cmd["cmd"] == "mangler":
                         for machine in machines:
-                            print(machine.gettype())
                             if machine.gettype().lower() == job.cmd["machinetype"].lower() and machine.isavailable():
                                 await client.send_message(
                                         job.channel,
@@ -202,7 +200,6 @@ async def on_socket_raw_receive(msg):
                                 break
                 for job in donejobs:
                     myjobs.remove(job)
-            print(msg)
 
 @client.event
 async def on_message(message):
