@@ -100,4 +100,6 @@ ENV/
 # mypy
 .mypy_cache/
 
+# files related to specific instance
 vask.ini
+.session
