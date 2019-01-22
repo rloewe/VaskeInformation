@@ -124,7 +124,7 @@ class laundry:
         machines = self.getmachines()
         available = []
         for machine in machines:
-            if machine.isavailable:
+            if machine.isavailable and machine.gettype() == machinetype:
                 available.append(machine)
         return machines
 
@@ -165,7 +165,7 @@ async def on_ready():
 async def on_socket_raw_receive(msg):
     if isinstance(msg, str):
         event = json.loads(msg)
-        # React to heartbeet event
+        # React to heartbeat event
         if isinstance(event, dict) and event["op"] == 11:
             while not jobs.empty():
                 myjobs.append(jobs.get())
