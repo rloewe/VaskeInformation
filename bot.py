@@ -22,7 +22,7 @@ class machine:
         self.started  = self._convert_nbsp(started.strip())
 
     def gettype(self):
-        return self.name.split(" ")[0]
+        return self.name.split(" ")[0].lower()
 
     def isavailable(self):
         return self.status.lower() == "fri"
@@ -126,7 +126,7 @@ class laundry:
         for machine in machines:
             if machine.isavailable and machine.gettype() == machinetype:
                 available.append(machine)
-        return machines
+        return available
 
     def fixlocalcache(self):
         self.availablemachines = self.getmachines()
