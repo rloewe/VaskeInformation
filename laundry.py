@@ -57,7 +57,7 @@ class laundrydataprovider(dataprovider):
         self.dumpsession()
 
     def getmachines(self):
-        req = self._session.get(self.url)
+        req = self._session.get(self._url)
         self.dumpsession()
         machines = []
 
