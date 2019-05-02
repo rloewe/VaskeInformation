@@ -45,7 +45,7 @@ async def on_socket_raw_receive(msg):
                 donejobs = []
                 for job in myjobs:
                     if job.cmd["cmd"] == "mangler":
-                        if len(laundry.availableoftype(job.cmd["machinetype"])) > 0:
+                        if len(l.availableoftype(job.cmd["machinetype"])) > 0:
                             await client.send_message(
                                     job.channel,
                                     job.mention
@@ -56,7 +56,7 @@ async def on_socket_raw_receive(msg):
                             donejobs.append(job)
                             break
                     elif job.cmd["cmd"] == "bruger":
-                        if not laundry.ismachineinuse(job.cmd["machine"]):
+                        if not l.ismachineinuse(job.cmd["machine"]):
                             await client.send_message(
                                     job.channel,
                                     job.mention
