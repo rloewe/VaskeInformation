@@ -77,7 +77,7 @@ class laundrydataprovider(dataprovider):
                             )
             return machines
         elif req.status_code == 403:
-            #TODO: fix busy webserver
+            # TODO: fix busy webserver
             # Session cookies have been added as a possible fix for this
             print("Server says it is busy")
         else:
@@ -147,6 +147,6 @@ class laundry:
         return available
 
     def _fixlocalcache(self):
-        currentTime = time.time()
-        if currentTime-self._lastcacheupdate > 40:
+        current_time = time.time()
+        if current_time-self._lastcacheupdate > 40:
             self.availablemachines = self._dataprovider.getmachines()
