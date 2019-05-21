@@ -100,48 +100,52 @@ class laundry:
 
         self.availablemachines = []
         self._lastcacheupdate = -1
+        self._dataavailable = False
+        self._errortext = "Der er i øjeblikket ingen tilgængelige data. Vaskeriet må være nede"
 
     def machineexists(self, name):
         self._fixlocalcache()
 
-        for machine in self.availablemachines:
-            if machine.name.lower() == name.lower():
-                return True
+        if self._dataavailable:
+            for machine in self.availablemachines:
+                if machine.name.lower() == name.lower():
+                    return True
         return False
 
     def ismachineinuse(self, name):
         self._fixlocalcache()
-
-        machines = self._dataprovider.getmachines()
-        for machine in machines:
-            if machine.name.lower() == name.lower():
-                return not machine.isavailable()
+        if self._dataavailable:
+            for machine in self.availablemachines:
+                if machine.name.lower() == name.lower():
+                    return not machine.isavailable()
+        else:
+            return False
 
     def getstatustable(self):
         self._fixlocalcache()
-
-        machines = self._dataprovider.getmachines()
-        table = PrettyTable([
-            "navn",
-            "pris",
-            "status",
-            "tid tilbage",
-            "startet"])
-        [table.add_row([
-            x.name,
-            x.price,
-            x.status,
-            x.timeleft,
-            x.started
-            ]) for x in machines]
-        return table.get_string()
+        if self._dataavailable:
+            table = PrettyTable([
+                "navn",
+                "pris",
+                "status",
+                "tid tilbage",
+                "startet"])
+            [table.add_row([
+                x.name,
+                x.price,
+                x.status,
+                x.timeleft,
+                x.started
+                ]) for x in self.availablemachines]
+            return table.get_string()
+        else:
+            return self._errortext
 
     def availableoftype(self, machinetype):
         self._fixlocalcache()
 
-        machines = self._dataprovider.getmachines()
         available = []
-        for machine in machines:
+        for machine in self.availablemachines:
             if machine.isavailable() and machine.gettype() == machinetype.lower():
                 available.append(machine)
         return available
@@ -149,4 +153,8 @@ class laundry:
     def _fixlocalcache(self):
         current_time = time.time()
         if current_time-self._lastcacheupdate > 40:
-            self.availablemachines = self._dataprovider.getmachines()
+            try:
+                self.availablemachines = self._dataprovider.getmachines()
+                self._dataavailable = True
+            except requests.ConnectionError:
+                self._dataavailable = False

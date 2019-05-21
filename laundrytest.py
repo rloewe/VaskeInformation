@@ -1,5 +1,6 @@
 import unittest
 import laundry
+import requests
 
 class testprovidernofreemachines(laundry.dataprovider):
     def __init__(self, ip, uri):
@@ -24,6 +25,13 @@ class testproviderfreemachines(laundry.dataprovider):
                 laundry.machine("TUMBLER 1", "1", "optaget", "15", "00:00"),
                 laundry.machine("TUMBLER 2", "1", "fri", "15", "00:00"),
                 ]
+
+class testproviderconnectionerror(laundry.dataprovider):
+    def __init__(self, ip, uri):
+        return
+
+    def getmachines(self):
+        raise requests.ConnectionError
 
 class TestLaundry(unittest.TestCase):
     def test_availableoftype_with_nofreemachines_uppercase(self):
@@ -67,6 +75,10 @@ class TestLaundry(unittest.TestCase):
         testlaundry = laundry.laundry(dataprovider=testproviderfreemachines(None, None))
         self.assertTrue(testlaundry.ismachineinuse("TUMBLER 1"))
         self.assertFalse(testlaundry.ismachineinuse("TUMBLER 2"))
+
+    def test_getmachines_withexception(self):
+        testlaundry = laundry.laundry(dataprovider=testproviderconnectionerror(None, None))
+        testlaundry.getstatustable()
 
 if __name__ == '__main__':
     unittest.main()
