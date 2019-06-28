@@ -4,6 +4,7 @@ import discord
 import configparser
 import queue
 import json
+import zlib
 from laundry import laundry
 
 client = discord.Client()
@@ -15,6 +16,7 @@ url = config["DEFAULT"]["url"]
 jobs = queue.Queue()
 l = laundry(ip, url)
 myjobs = []
+_zlib = zlib.decompressobj()
 
 class job:
     def __init__(self, channel, mention, cmd):
@@ -33,9 +35,11 @@ async def on_ready():
     print("")
 
 @client.event
-async def on_socket_raw_receive(msg):
-    if isinstance(msg, str):
-        event = json.loads(msg)
+@client.eventasync
+def on_socket_raw_receive(msg):
+    decoded = _zlib.decompress(msg).decode('utf-8')
+    if isinstance(decoded, str):
+        event = json.loads(decoded)
         # React to heartbeat event
         if isinstance(event, dict) and event["op"] == 11:
             while not jobs.empty():
