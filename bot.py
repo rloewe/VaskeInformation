@@ -35,8 +35,7 @@ async def on_ready():
     print("")
 
 @client.event
-@client.eventasync
-def on_socket_raw_receive(msg):
+async def on_socket_raw_receive(msg):
     decoded = _zlib.decompress(msg).decode('utf-8')
     if isinstance(decoded, str):
         event = json.loads(decoded)
