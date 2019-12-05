@@ -8,9 +8,9 @@ import zlib
 import logging
 from laundry import laundry
 
-logging.basicConfig(filename="vask.log", format="[%(asctime)s] %(levelname)s: %(message)s", level=logging.DEBUG)
+logging.basicConfig(filename="vask.log", format="[%(asctime)s] %(levelname)s: %(message)s", level=logging.INFO)
 
-logging.debug("Bot started")
+logging.info("Bot started")
 client = discord.Client()
 config = configparser.ConfigParser()
 config.read("vask.ini")
@@ -33,7 +33,7 @@ class job:
 
 @client.event
 async def on_ready():
-    logging.debug("Logged in as %s, %s", client.user.name, client.user.id)
+    logging.info("Logged in as %s, %s", client.user.name, client.user.id)
 
 @client.event
 async def on_socket_raw_receive(msg):
@@ -45,7 +45,7 @@ async def on_socket_raw_receive(msg):
             while not jobs.empty():
                 myjobs.append(jobs.get())
 
-            logging.debug(f"jobs {myjobs}")
+            logging.info(f"jobs {myjobs}")
             if len(myjobs) > 0:
                 donejobs = []
                 for job in myjobs:
