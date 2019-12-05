@@ -45,7 +45,7 @@ async def on_socket_raw_receive(msg):
             while not jobs.empty():
                 myjobs.append(jobs.get())
 
-            logging.debug("jobs {myjobs}")
+            logging.debug(f"jobs {myjobs}")
             if len(myjobs) > 0:
                 donejobs = []
                 for job in myjobs:
