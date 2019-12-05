@@ -5,6 +5,7 @@ from prettytable import PrettyTable
 from lxml import html
 from abc import ABC, abstractmethod
 import pickle
+import logging
 
 class machine:
     def __init__(self, name, price, status, timeleft, started):
@@ -79,11 +80,9 @@ class laundrydataprovider(dataprovider):
         elif req.status_code == 403:
             # TODO: fix busy webserver
             # Session cookies have been added as a possible fix for this
-            print("Server says it is busy")
+            logging.warning("Server says it is busy")
         else:
-            print(req.status_code)
-            print(req.text)
-            print("something went wrong")
+            logging.warning(f"Something went wrong. Status: {req.status_code}, Text: {req.text}")
             return []
 
     def dumpsession(self):
