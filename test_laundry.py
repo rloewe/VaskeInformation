@@ -1,4 +1,3 @@
-import unittest
 import laundry
 import requests
 
@@ -33,52 +32,48 @@ class testproviderconnectionerror(laundry.dataprovider):
     def getmachines(self):
         raise requests.ConnectionError
 
-class TestLaundry(unittest.TestCase):
-    def test_availableoftype_with_nofreemachines_uppercase(self):
-        testlaundry = laundry.laundry(dataprovider=testprovidernofreemachines(None, None))
-        self.assertTrue(len(testlaundry.availableoftype("TUMBLER")) == 0)
-        self.assertTrue(len(testlaundry.availableoftype("VASK")) == 0)
+def test_availableoftype_with_nofreemachines_uppercase():
+    testlaundry = laundry.laundry(dataprovider=testprovidernofreemachines(None, None))
+    assert len(testlaundry.availableoftype("TUMBLER")) == 0
+    assert len(testlaundry.availableoftype("VASK")) == 0
 
-    def test_availableoftype_with_nofreemachines_lowercase(self):
-        testlaundry = laundry.laundry(dataprovider=testprovidernofreemachines(None, None))
-        self.assertTrue(len(testlaundry.availableoftype("tumbler")) == 0)
-        self.assertTrue(len(testlaundry.availableoftype("vask")) == 0)
+def test_availableoftype_with_nofreemachines_lowercase():
+    testlaundry = laundry.laundry(dataprovider=testprovidernofreemachines(None, None))
+    assert len(testlaundry.availableoftype("tumbler")) == 0
+    assert len(testlaundry.availableoftype("vask")) == 0
 
-    def test_availableoftype_with_freemachines_uppercase(self):
-        testlaundry = laundry.laundry(dataprovider=testproviderfreemachines(None, None))
-        self.assertTrue(len(testlaundry.availableoftype("TUMBLER")) == 1)
-        self.assertTrue(len(testlaundry.availableoftype("VASK")) == 2)
+def test_availableoftype_with_freemachines_uppercase():
+    testlaundry = laundry.laundry(dataprovider=testproviderfreemachines(None, None))
+    assert len(testlaundry.availableoftype("TUMBLER")) == 1
+    assert len(testlaundry.availableoftype("VASK")) == 2
 
-    def test_availableoftype_with_freemachines_lowercase(self):
-        testlaundry = laundry.laundry(dataprovider=testproviderfreemachines(None, None))
-        self.assertTrue(len(testlaundry.availableoftype("tumbler")) == 1)
-        self.assertTrue(len(testlaundry.availableoftype("vask")) == 2)
+def test_availableoftype_with_freemachines_lowercase():
+    testlaundry = laundry.laundry(dataprovider=testproviderfreemachines(None, None))
+    assert len(testlaundry.availableoftype("tumbler")) == 1
+    assert len(testlaundry.availableoftype("vask")) == 2
 
-    def test_machineexists_lowercase(self):
-        testlaundry = laundry.laundry(dataprovider=testproviderfreemachines(None, None))
-        self.assertTrue(testlaundry.machineexists("tumbler 1"))
-        self.assertTrue(testlaundry.machineexists("tumbler 2"))
-        self.assertFalse(testlaundry.machineexists("non_existing_machine"))
+def test_machineexists_lowercase():
+    testlaundry = laundry.laundry(dataprovider=testproviderfreemachines(None, None))
+    assert testlaundry.machineexists("tumbler 1")
+    assert testlaundry.machineexists("tumbler 2")
+    assert not testlaundry.machineexists("non_existing_machine")
 
-    def test_machineexists_uppercase(self):
-        testlaundry = laundry.laundry(dataprovider=testproviderfreemachines(None, None))
-        self.assertTrue(testlaundry.machineexists("TUMBLER 1"))
-        self.assertTrue(testlaundry.machineexists("TUMBLER 2"))
-        self.assertFalse(testlaundry.machineexists("NON_EXISTING_MACHINE"))
+def test_machineexists_uppercase():
+    testlaundry = laundry.laundry(dataprovider=testproviderfreemachines(None, None))
+    assert testlaundry.machineexists("TUMBLER 1")
+    assert testlaundry.machineexists("TUMBLER 2")
+    assert  not testlaundry.machineexists("NON_EXISTING_MACHINE")
 
-    def test_ismachineinuse_lowercase(self):
-        testlaundry = laundry.laundry(dataprovider=testproviderfreemachines(None, None))
-        self.assertTrue(testlaundry.ismachineinuse("tumbler 1"))
-        self.assertFalse(testlaundry.ismachineinuse("tumbler 2"))
+def test_ismachineinuse_lowercase():
+    testlaundry = laundry.laundry(dataprovider=testproviderfreemachines(None, None))
+    assert testlaundry.ismachineinuse("tumbler 1")
+    assert not testlaundry.ismachineinuse("tumbler 2")
 
-    def test_ismachineinuse_uppercase(self):
-        testlaundry = laundry.laundry(dataprovider=testproviderfreemachines(None, None))
-        self.assertTrue(testlaundry.ismachineinuse("TUMBLER 1"))
-        self.assertFalse(testlaundry.ismachineinuse("TUMBLER 2"))
+def test_ismachineinuse_uppercase():
+    testlaundry = laundry.laundry(dataprovider=testproviderfreemachines(None, None))
+    assert testlaundry.ismachineinuse("TUMBLER 1")
+    assert not testlaundry.ismachineinuse("TUMBLER 2")
 
-    def test_getmachines_withexception(self):
-        testlaundry = laundry.laundry(dataprovider=testproviderconnectionerror(None, None))
-        testlaundry.getstatustable()
-
-if __name__ == '__main__':
-    unittest.main()
+def test_getmachines_withexception():
+    testlaundry = laundry.laundry(dataprovider=testproviderconnectionerror(None, None))
+    testlaundry.getstatustable()
