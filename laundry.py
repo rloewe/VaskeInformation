@@ -44,7 +44,7 @@ class dataprovider(ABC):
 
 class laundrydataprovider(dataprovider):
     def __init__(self, ip, uri):
-        self._url = "http://" + ip + uri
+        self._url = f"http://{ip}{uri}"
 
         if os.path.isfile(".session"):
             with open(".session", "rb") as f:
@@ -53,7 +53,7 @@ class laundrydataprovider(dataprovider):
             self._session = requests.Session()
 
         # Make sure system is up and running
-        self._session.get("http://" + ip)
+        self._session.get(f"http://{ip}")
 
         self.dumpsession()
 

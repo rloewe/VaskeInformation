@@ -51,22 +51,12 @@ async def on_socket_raw_receive(msg):
                 for job in myjobs:
                     if job.cmd["cmd"] == "mangler":
                         if len(l.availableoftype(job.cmd["machinetype"])) > 0:
-                            await job.channel.send(
-                                    job.mention
-                                        + " en maskine af typen "
-                                        + job.cmd["machinetype"]
-                                        + " er nu ledig!"
-                                    )
+                            await job.channel.send(f"{job.mention} en maskine af typen {job.cmd['machinetype']} er nu ledig!")
                             donejobs.append(job)
                             break
                     elif job.cmd["cmd"] == "bruger":
                         if not l.ismachineinuse(job.cmd["machine"]):
-                            await job.channel.send(
-                                    job.mention
-                                        + u" dit tøj i maskine "
-                                        + job.cmd["machine"]
-                                        + u" er nu færdigt!"
-                                    )
+                            await job.channel.send(f"{job.mention} dit tøj i maskine {job.cmd['machine']} er nu færdigt!")
                             donejobs.append(job)
                             break
                 for job in donejobs:
@@ -81,30 +71,18 @@ async def on_message(message):
         args = parts[2:]
 
         if cmd == "status":
-            await message.channel.send(
-                    message.author.mention
-                        + "```\n"
-                        + l.getstatustable()
-                        +  "```"
-                    )
+            await message.channel.send(f"{message.author.mention}```\n{l.getstatustable()}```")
         elif cmd == "bruger" and len(args) > 0:
             name = " ".join(args).lower()
             if not l.machineexists(name):
-                await message.channel.send(
-                        message.author.mention + " maskinen findes ikke"
-                        )
+                await message.channel.send(f"{message.author.mention} maskinen findes ikke")
                 return
 
             if not l.ismachineinuse(name):
-                await message.channel.send(
-                        message.author.mention
-                            + " maskinen er fri lige nu. Så er dit vasketøj færdigt?"
-                        )
+                await message.channel.send(f"{message.author.mention} maskinen er fri lige nu. Så er dit vasketøj færdigt?")
                 return
 
-            await message.channel.send(
-                    message.author.mention + " Jeg holder øje med dit vasketøj"
-                    )
+            await message.channel.send(f"{message.author.mention} Jeg holder øje med dit vasketøj")
             jobs.put(
                     job(
                         message.channel,
@@ -115,16 +93,10 @@ async def on_message(message):
         elif cmd == "mangler" and len(args) > 0:
             available = l.availableoftype(args[0])
             if len(available) > 0:
-                await message.channel.send(
-                        message.author.mention
-                            + "Der er en ledig maskine af den type lige nu!"
-                        )
+                await message.channel.send(f"{message.author.mention} Der er en ledig maskine af den type lige nu!")
                 return
 
-            await message.channel.send(
-                    message.author.mention
-                        + " Du får besked, når der er en fri maskine"
-                    )
+            await message.channel.send(f"{message.author.mention} Du får besked, når der er en fri maskine")
             jobs.put(
                     job(
                         message.channel,
