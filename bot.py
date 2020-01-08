@@ -6,6 +6,7 @@ import queue
 import json
 import zlib
 import logging
+import pickle
 from laundry import laundry
 
 logging.basicConfig(filename="vask.log", format="[%(asctime)s] %(levelname)s: %(message)s", level=logging.INFO)
@@ -19,8 +20,13 @@ ip = config["DEFAULT"]["ip"]
 url = config["DEFAULT"]["url"]
 jobs = queue.Queue()
 l = laundry(ip, url)
-myjobs = []
 _zlib = zlib.decompressobj()
+
+try:
+    with open("laundry.jobs") as f:
+        myjobs = pickle.load(f)
+except:
+    myjobs = []
 
 class job:
     def __init__(self, channel, mention, cmd):
@@ -61,6 +67,9 @@ async def on_socket_raw_receive(msg):
                             break
                 for job in donejobs:
                     myjobs.remove(job)
+
+                with open("laundry.jobs") as f:
+                    pickle.dump(myjobs, f)
 
 @client.event
 async def on_message(message):
