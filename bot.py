@@ -9,7 +9,7 @@ import logging
 import pickle
 from laundry import laundry
 
-logging.basicConfig(filename="vask.log", format="[%(asctime)s] %(levelname)s: %(message)s", level=logging.INFO)
+logging.basicConfig(filename="vask.log", format="[%(asctime)s] %(pathname)s:%(lineno)d %(levelname)s: %(message)s", level=logging.DEBUG)
 
 logging.info("Bot started")
 client = discord.Client()
