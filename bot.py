@@ -4,29 +4,19 @@ import discord
 import configparser
 import queue
 import json
-import zlib
 import logging
 import pickle
+import asyncio
 from laundry import laundry
 
 logging.basicConfig(filename="vask.log", format="[%(asctime)s] %(pathname)s:%(lineno)d %(levelname)s: %(message)s", level=logging.INFO)
 
 logging.info("Bot started")
-client = discord.Client()
 config = configparser.ConfigParser()
 config.read("vask.ini")
 token = config["DEFAULT"]["token"]
 ip = config["DEFAULT"]["ip"]
 url = config["DEFAULT"]["url"]
-jobs = queue.Queue()
-l = laundry(ip, url)
-_zlib = zlib.decompressobj()
-
-try:
-    with open("laundry.jobs") as f:
-        myjobs = pickle.load(f)
-except:
-    myjobs = []
 
 class job:
     def __init__(self, channel, mention, cmd):
@@ -37,90 +27,99 @@ class job:
     def __str__(self):
         return " ".join([self.mention, str(self.channel), str(self.cmd)])
 
-@client.event
-async def on_ready():
-    logging.info("Logged in as %s, %s", client.user.name, client.user.id)
+class VaskeBot(discord.Client):
+    def __init__(self, ip, url, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-@client.event
-async def on_socket_raw_receive(msg):
-    decoded = _zlib.decompress(msg).decode('utf-8')
-    if isinstance(decoded, str):
-        event = json.loads(decoded)
-        # React to heartbeat event
-        if isinstance(event, dict) and event["op"] == 11:
-            while not jobs.empty():
-                myjobs.append(jobs.get())
+        self._jobs = queue.Queue()
+        self._l = laundry(ip, url)
 
-            logging.info(f"jobs {myjobs}")
-            if len(myjobs) > 0:
+        try:
+            with open("laundry.jobs") as f:
+                self._myjobs = pickle.load(f)
+        except:
+            self._myjobs = []
+
+        #background task
+        self.bg_task = self.loop.create_task(self.check_laundry())
+
+    async def check_laundry(self):
+        await self.wait_until_ready()
+        while not self.is_closed():
+            while not self._jobs.empty():
+                self._myjobs.append(self._jobs.get())
+
+            logging.info(f"jobs {self._myjobs}")
+            if len(self._myjobs) > 0:
                 donejobs = []
-                for job in myjobs:
+                for job in self._myjobs:
                     if job.cmd["cmd"] == "mangler":
-                        if len(l.availableoftype(job.cmd["machinetype"])) > 0:
+                        if len(self._l.availableoftype(job.cmd["machinetype"])) > 0:
                             await job.channel.send(f"{job.mention} en maskine af typen {job.cmd['machinetype']} er nu ledig!")
                             donejobs.append(job)
                             break
                     elif job.cmd["cmd"] == "bruger":
-                        if not l.ismachineinuse(job.cmd["machine"]):
+                        if not self._l.ismachineinuse(job.cmd["machine"]):
                             await job.channel.send(f"{job.mention} dit tøj i maskine {job.cmd['machine']} er nu færdigt!")
                             donejobs.append(job)
                             break
                 for job in donejobs:
-                    myjobs.remove(job)
+                    self._myjobs.remove(job)
 
                 with open("laundry.jobs") as f:
-                    pickle.dump(myjobs, f)
+                    pickle.dump(self._myjobs, f)
 
-@client.event
-async def on_message(message):
-    if any([mention.id == client.user.id for mention in message.mentions]):
+            await asyncio.sleep(60)
 
-        parts = message.content.lower().split(" ")
-        cmd = parts[1]
-        args = parts[2:]
+    async def on_message(self, message):
+        if any([mention.id == client.user.id for mention in message.mentions]):
 
-        if cmd == "status":
-            await message.channel.send(f"{message.author.mention}```\n{l.getstatustable()}```")
-        elif cmd == "bruger" and len(args) > 0:
-            name = " ".join(args).lower()
-            if not l.machineexists(name):
-                await message.channel.send(f"{message.author.mention} maskinen findes ikke")
-                return
+            parts = message.content.lower().split(" ")
+            cmd = parts[1]
+            args = parts[2:]
 
-            if not l.ismachineinuse(name):
-                await message.channel.send(f"{message.author.mention} maskinen er fri lige nu. Så er dit vasketøj færdigt?")
-                return
+            if cmd == "status":
+                await message.channel.send(f"{message.author.mention}```\n{self._l.getstatustable()}```")
+            elif cmd == "bruger" and len(args) > 0:
+                name = " ".join(args).lower()
+                if not self._l.machineexists(name):
+                    await message.channel.send(f"{message.author.mention} maskinen findes ikke")
+                    return
 
-            await message.channel.send(f"{message.author.mention} Jeg holder øje med dit vasketøj")
-            jobs.put(
-                    job(
-                        message.channel,
-                        message.author.mention,
-                        { "cmd": cmd, "machine": name }
+                if not self._l.ismachineinuse(name):
+                    await message.channel.send(f"{message.author.mention} maskinen er fri lige nu. Så er dit vasketøj færdigt?")
+                    return
+
+                await message.channel.send(f"{message.author.mention} Jeg holder øje med dit vasketøj")
+                self._jobs.put(
+                        job(
+                            message.channel,
+                            message.author.mention,
+                            { "cmd": cmd, "machine": name }
+                            )
                         )
-                    )
-        elif cmd == "mangler" and len(args) > 0:
-            available = l.availableoftype(args[0])
-            if len(available) > 0:
-                await message.channel.send(f"{message.author.mention} Der er en ledig maskine af den type lige nu!")
-                return
+            elif cmd == "mangler" and len(args) > 0:
+                available = self._l.availableoftype(args[0])
+                if len(available) > 0:
+                    await message.channel.send(f"{message.author.mention} Der er en ledig maskine af den type lige nu!")
+                    return
 
-            await message.channel.send(f"{message.author.mention} Du får besked, når der er en fri maskine")
-            jobs.put(
-                    job(
-                        message.channel,
-                        message.author.mention,
-                        { "cmd": cmd, "machinetype": args[0] }
+                await message.channel.send(f"{message.author.mention} Du får besked, når der er en fri maskine")
+                self._jobs.put(
+                        job(
+                            message.channel,
+                            message.author.mention,
+                            { "cmd": cmd, "machinetype": args[0] }
+                            )
                         )
-                    )
-        elif cmd == "help":
-            await message.channel.send(
-            """```
+            elif cmd == "help":
+                await message.channel.send(
+                """```
 Jeg tager i mod følgende kommandoer:
 status - få status over alle maskiner
 bruger [maskine] - giver en notifikation, når maskinen er færdig
 mangler [type] - giver en notifikation, når maskintype er ledig
 help - denne besked
-            ```""")
-
+                ```""")
+client = VaskeBot(ip, url)
 client.run(token)
