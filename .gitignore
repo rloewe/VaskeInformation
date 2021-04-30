@@ -103,3 +103,8 @@ ENV/
 # files related to specific instance
 vask.ini
 .session
+
+
+# Added by cargo
+
+/target
