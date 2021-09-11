@@ -10,6 +10,7 @@ pub struct Laundry {
     last_updated: SystemTime,
     client: reqwest::Client,
     cookie_store: Arc<CookieStoreMutex>,
+    url: String,
 }
 
 struct Machine {
@@ -44,7 +45,7 @@ impl std::fmt::Display for MachineType {
 }
 
 impl Laundry {
-    pub fn new() -> Laundry {
+    pub fn new(url: String) -> Laundry {
         let cookie_store = {
             match std::fs::File::open("cookies.json") {
                 Ok(file) => {
@@ -64,16 +65,12 @@ impl Laundry {
                 .build()
                 .unwrap(),
             cookie_store,
+            url,
         }
     }
 
     async fn update_machines(&mut self) {
-        let body = self
-            .client
-            .get("http://localhost:8888")
-            .send()
-            .await
-            .unwrap();
+        let body = self.client.get(&self.url).send().await.unwrap();
         {
             // Write store back to disk
             let mut writer = std::fs::File::create("cookies.json")

@@ -199,8 +199,14 @@ async fn does_exist(ctx: &Context, name: String) -> bool {
 
 #[tokio::main]
 async fn main() {
-    let token = "";
-    let client_id = UserId(0);
+    let token = env::var("TOKEN").expect("Token");
+    let client_id = UserId(
+        env::var("CLIENTID")
+            .expect("Client id")
+            .parse::<u64>()
+            .unwrap(),
+    );
+    let url = env::var("URL").expect("url");
     let framework = StandardFramework::new()
         .configure(|c| {
             c.on_mention(Some(client_id))
@@ -219,7 +225,7 @@ async fn main() {
     {
         let mut data = client.data.write().await;
 
-        data.insert::<LaundryContainer>(Arc::new(RwLock::new(Laundry::new())))
+        data.insert::<LaundryContainer>(Arc::new(RwLock::new(Laundry::new(url))))
     }
 
     if let Err(why) = client.start().await {
